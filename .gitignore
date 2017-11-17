@@ -19,3 +19,6 @@ index_.html
 _.md
 
 assets/images/home-tiles-template.psd
+
+._*
+.DS_Store

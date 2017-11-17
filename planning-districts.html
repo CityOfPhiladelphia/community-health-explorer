@@ -47,14 +47,17 @@ permalink: /planning-districts/
             </div>
             <div class="row equal-height">
               {% for row in category.items %}
-              <div class="medium-8 small-12 column{% if row.Indicator | last %} end{% endif %}{% if row.Central ==  %} hidden{% endif %}" id="card-{{ row.Indicator | slugify }}">
+              <div class="medium-8 small-12 column{% if row.Indicator | last %} end{% endif %}{% if row.Central == 'N/A' %} hidden{% endif %}" id="card-{{ row.Indicator | slugify }}">
                 <div class="card equal">
                   <div class="content-block">
                     <h1 class="indicator-value" id="value-{{ row.Indicator | slugify }}">
 	                      {% if row.dataType == 'Percentage' and row.Central != 'N/A' %}
 	                        {{ row.Central | times: 100 }}%
-	                      {% elsif row.Central == 'N/A' %}N/A
-						  {% else %}
+                        {% elsif row.dataType == 'Count' and row.Central != 'N/A' %}
+                          {{ row.Central | round: 1 }}
+	                      {% elsif row.Central == 'N/A' %}
+                          N/A
+						            {% else %}
 	                        {{ row.Central }}
 	                      {% endif %}
                     </h1>
