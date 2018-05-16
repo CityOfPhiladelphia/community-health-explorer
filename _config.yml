@@ -1,6 +1,6 @@
 # Site settings
 title: Community Health Explorer
-baseurl: "/" # the subpath of your site, e.g. /blog
+baseurl: "" # the subpath of your site, e.g. /blog
 
 year: "2017"
 
