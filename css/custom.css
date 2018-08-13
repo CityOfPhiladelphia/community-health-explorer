@@ -70,6 +70,11 @@ aside#secondary a:link, aside#secondary a:visited {
 }
 .source, .updated, .comment {
   font-size: .7rem;
+  /*line-height: 1rem;*/
+}
+span.source-text {
+	font-size: .7rem;
+	line-height: 0.8rem!important;
 }
 .main {
   margin-left: 20px;
@@ -215,4 +220,12 @@ p.small-24.column {
 
 p.description {
     /* margin-top: -12px; */
+}
+
+.other-data {
+	margin-top: 10px;
+}
+
+.dimension-icon {
+	font-size: 16px;
 }

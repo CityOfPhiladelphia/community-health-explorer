@@ -51,10 +51,19 @@ permalink: /racial-disparity/
                 {% if row.chartComment %}  <p class="source">{{ row.chartComment }}</p>{% endif %}
                 {% if row.Note %} <p class="source">{{ row.Note }}</p>{% endif %}
                   <!-- Data source(s) -->
-              {% if row.dataSource %}<span class="source"><strong>Source: </strong></span><br>
-                <span class="source">{{ row.dataSource | markdownify | remove: '<p>' | remove: '</p>' }} | {{ row.dataSourceYear }}</span>
-              {% endif %}
-<!--              <input type="button" id="share-button" class="button" value="Image">-->
+                {% if row.dataSource %}<span class="source"><strong>Source: </strong></span><br>
+                  <p class="source">{{ row.dataSource | markdownify | remove: '<p>' | remove: '</p>' }} | {{ row.dataSourceYear }}</p>
+                {% endif %}
+			  <!-- View this indicator by other dimensions -->
+			    <p class="other-data source"><strong>Other data for this indicator</strong><br>
+				  {% if page.url != '/planning-districts/' %}<a href="/planning-districts#{{ row.Indicator | slugify }}" class="dimension-icon"><i class="fa fa-map"></i></a>{% endif %}
+				  {% if page.url != '/racial-disparity/'%}<a href="/racial-disparity#{{ row.Indicator | slugify }}" class="dimension-icon"><i class="fa fa-user" aria-hidden="true"></i></a>{% endif %}
+				  {% if page.url != '/citywide-over-time/' %}<a href="/citywide-over-time#{{ row.Indicator | slugify }}" class="dimension-icon"><i class="fa fa-clock-o" aria-hidden="true"></i></a>
+				  <!-- <a href="/top-10-cities#{{ row.Indicator | slugify }}"><i class="fa fa-globe" aria-hidden="true"></i></a> -->
+				  {% if page.url != '/top-10-cities/' %}<a href="/top-10-cities#{{ row.Indicator | slugify }}" class="dimension-icon"><i class="fa fa-building" aria-hidden="true"></i></a>
+			    </p>
+			  <!-- placeholder for social sharing function -->
+			  <!-- <input type="button" id="share-button" class="button" value="Image">-->
 
             </aside>
           </div>
