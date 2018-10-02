@@ -1,0 +1,62 @@
+---
+layout: map
+title: Planning Districts
+permalink: /planning-districts2/
+---
+
+{% assign categories = site.data[site.year].planning_district | group_by: 'Category' %}
+
+<div class="row">
+  <div id="map-wrapper">
+    <div id="map" class="medium-8 column show-for-medium"></div>
+
+    <div id="district-info" class="medium-16 small-24 column end">
+      <div id="indicators">
+        <div id="top"></div>
+
+        {% for category in categories %}
+        <div id="{{ category.name | slugify }}" class="offset">
+          <div class="row">
+            <h1 class="contrast columns">
+              {{ category.name }}
+              <a href="#{{ category.name | slugify }}" class="header-link">
+                <i class="fa fa-link"></i>
+              </a>
+            </h1>
+            <div class="row fat-gutter">
+            {% for item in category.items %}
+              {% assign item_id = item.Indicator | slugify %}
+              <div class="medium-8 small-12 column end" id="card-{{ item_id }}">
+                <a href="#{{ item_id }}">
+                  <div class="card equal">
+                    <div class="content-block">
+                      <h1>{{ item.Indicator }}</h1>
+                      {% if row.description %}
+                        <span class="source">
+                          <strong>Description:</strong>
+                        </span>
+                        <span class="description">
+                          {{ row.description | markdownify }}
+                        </span>
+                      {% endif %}
+                    </div>
+                  </div>
+                </a>
+              </div>
+            {% endfor %}
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Pass data from jekyll/liquid to javascript
+  var districtsGeojson = {{ site.data.planning_district_boundaries | jsonify }}
+  var indicators = {{ site.data[site.year].planning_district | jsonify }}
+  var labels = {{ site.data[site.year].planning_district_labels | jsonify }}
+</script>
+<script src="{{ site.baseurl }}/scripts/planning-districts2.js"></script>
