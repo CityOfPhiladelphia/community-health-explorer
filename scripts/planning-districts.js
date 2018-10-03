@@ -1,121 +1,107 @@
+/* global districtsGeojson, indicators, labels */
 (function () {
-  var defaultCenter = [39.9628, -75.1185]
-  var defaultZoom = 11
+  var container = document.querySelector('#map')
+  var DEFAULT_CENTER = [39.9628, -75.1185]
+  var DEFAULT_ZOOM = 11
+  var TILES_BASEMAP = 'https://tiles.arcgis.com/tiles/fLeGjb7u4uXqeF9q/arcgis/rest/services/CityBasemap/MapServer'
+  var TILES_LABELS = 'https://tiles.arcgis.com/tiles/fLeGjb7u4uXqeF9q/arcgis/rest/services/CityBasemap_Labels/MapServer'
 
-  // Index the data by planning district
-  var indexedData = {}
-  data.forEach(function (row) {
-    var indicatorSlug = slugify(row.Indicator)
-    labels.forEach(function (label) {
-      if (!indexedData[label]) indexedData[label] = {}
-      var value = row.dataType === 'Percentage' && row[label] !== 'N/A' ? percentify(row[label]) : row[label]
-      indexedData[label][indicatorSlug] = value
-    })
+  // Create map
+  var mapOpts = { zoomControl: false }
+  var map = L.map(container, mapOpts)
+    .setView(DEFAULT_CENTER, DEFAULT_ZOOM)
+    .addLayer(L.esri.tiledMapLayer({ url: TILES_BASEMAP }))
+  var layerGroup = L.layerGroup().addTo(map)
+
+  // Key indicators by slug
+  // Note this relies on jekyll/liquid and the slugify function below
+  // producing matching strings.
+  var keyedIndicators = {}
+  indicators.forEach(function (indicator) {
+    var slug = slugify(indicator.Indicator)
+    keyedIndicators[slug] = indicator
   })
 
-  // When planning district dropdown changes, update indicators
-  var planningDistrictDropdown = document.getElementById('planning-district')
-  planningDistrictDropdown.addEventListener('change', function (event) {
-    updateIndicators(event.target.value);
-    districtsLayer.setStyle(setDistrictStyle)
-  })
+  // Bind onhashchange event to update function and execute it once
+  // immediately, in case there's a hash set on page load
+  window.onhashchange = updateMapByHash
+  updateMapByHash()
 
-  // Initialize map
-  var map = L.map(container, { zoomControl: false }).setView(defaultCenter, defaultZoom)
-
-  // Add basemap
-  L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}', {
-    attribution: 'Tiles &copy; Esri &mdash; Esri, DeLorme, NAVTEQ',
-    minZoon: 12,
-    maxZoom: 16
-  }).addTo(map)
-
-  // define polygon default styles
-  var districtStyle = {
-    "color": "#58c04d",
-    "weight": 0.5,
-    "opacity": 0.85
-  };
-
-  var setDistrictStyle = function (feature, highlighted){
-    var style = {
-      "color": "#58c04d",
-      "weight": 0.5,
-      "opacity": 0.85
-    };
-
-    // make inital polygon style match default value
-    if (feature.properties.DIST_NAME == planningDistrictDropdown.value){
-      style.color = '#2176d2'
-    }
-    return style;
-  };
-
-  // Add districts polygon layer
-  var districtsLayer = L.geoJson(districtsGeojson, {
-    style: setDistrictStyle,
-
-    // Create label popup on hover
-    onEachFeature: function (feature, layer){
-      if (feature.properties.DIST_NAME) {
-        layer.bindLabel(feature.properties.DIST_NAME, { noHide: true });
-      }
-    }
-  }).addTo(map)
-
-  // When a district is clicked on the map, update the sidebar to reflect its indicators
-  districtsLayer.on('click', function (event) {
-    var districtName = event.layer.feature.properties.DIST_NAME
-    var highlight = {
-      'color': '#2176d2',
-      'weight': 0.5,
-      'opacity': 1
-    };
-    console.log(event.layer)
-    updateIndicators(districtName)
-	// hideEmptyCards(districtName)
-
-    // Set dropdown to the clicked planning district
-    // and reset polygon style when another is clicked
-    planningDistrictDropdown.value = districtName
-
-    districtsLayer.setStyle(districtStyle);
-    event.layer.setStyle(highlight);
-  })
-
-  // update the numeric values in sidebar when a new
-  // district is selected
-  function updateIndicators (districtName) {
-    var indicators = indexedData[districtName] || {}
-    for (var indicator in indicators) {
-      document.getElementById('value-' + indicator).innerText = indicators[indicator]
+  // Get indicator from hash, remove current choropleth layer, add new one
+  function updateMapByHash () {
+    var hash = window.location.hash.substr(1)
+    var indicator = hash && keyedIndicators[hash]
+    if (indicator) {
+      layerGroup.clearLayers()
+      createChoroplethLayer(districtsGeojson, indicator).addTo(layerGroup)
+      updateMapTitle(indicator.Indicator)
+      setSelectedCard(hash)
     }
   }
 
-  // hide cards when indicator value is empty
-  // function hideEmptyCards (districtName) {
-  // ar indicators = indexedData[districtName] || {}
-  // or (var indicator in indicators) {
-  // if (!indicators[indicator] || indicators[indicator] === '0%') {
-  // console.log(indicators[indicator], 'hiding')
-  //   document.getElementById('card-' + indicator).classList.add('hidden')
-  // 		} else {
-  //   console.log(indicators[indicator], 'showing')
-  //   document.getElementById('card-' + indicator).classList.remove('hidden')
-  // }
-  //
-  // }
+  function getDistrictValue (indicator, district) {
+    try {
+      return +indicator[district]
+    } catch (err) {
+      console.error(err)
+    }
+  }
 
-  // Normalize data string contents to avoid breaking charts
+  function formatValue (indicator, value) {
+    if (indicator.dataType === 'Percentage') {
+      return (Math.round(value * 100 * 100) / 100) + '%'
+    } else if (indicator.dataType === 'Count') {
+      return Math.round(value).toLocaleString()
+    } else {
+      return value
+    }
+  }
+
+  function createChoroplethLayer (geojson, indicator) {
+    return L.choropleth(geojson, {
+      scale: ['#96c9ff', '#0f4d90'],
+      steps: 5,
+      mode: 'q',
+      style: {
+        color: '#fff',
+        weight: 0.8,
+        opacity: 0.85,
+        fillOpacity: 0.75
+      },
+      valueProperty: function (feature) {
+        var district = feature.properties.DIST_NAME
+        return getDistrictValue(indicator, district)
+      },
+      onEachFeature: function (feature, layer) {
+        var district = feature.properties.DIST_NAME
+        var value = getDistrictValue(indicator, district)
+        var formattedValue = formatValue(indicator, value)
+        var tooltipContents = district + '<br>' + formattedValue
+        layer.bindTooltip(tooltipContents)
+      }
+    })
+  }
+
+  function updateMapTitle (title) {
+    document.querySelector('#map-title').innerText = title
+  }
+
+  function setSelectedCard (slug) {
+    var cardsNodeList = document.querySelectorAll('.indicator-card')
+    var cards = [].slice.call(cardsNodeList) // convert to Array
+    cards.forEach(function (card) {
+      if (card.id === 'card-' + slug) {
+        card.classList.add('is-selected')
+      } else {
+        card.classList.remove('is-selected')
+      }
+    })
+  }
+
   function slugify (text) {
     return text.toString().toLowerCase().trim()
       .replace(/[^a-zA-Z0-9]/g, '-')  // Replace non-alphanumeric chars with -
       .replace(/\-\-+/g, '-')         // Replace multiple - with single -
       .replace(/^\-|\-$/i, '')        // Remove leading/trailing hyphen
-  }
-
-  // Formats numeric values as percentages
-  function percentify (value) {
-    return (Math.round(value * 100 * 10) / 10) + '%'
   }
 })()

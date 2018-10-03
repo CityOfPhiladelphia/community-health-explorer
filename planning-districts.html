@@ -3,102 +3,82 @@ layout: map
 title: Planning Districts
 permalink: /planning-districts/
 ---
+
+{% assign categories = site.data[site.year].planning_district | group_by: 'Category' %}
+
 <div class="row">
-  <div id="map-wrapper">
-    <div id="map" class="medium-8 column show-for-medium"></div>
+  <div id="page-wrapper">
+    <div id="map-container" class="medium-8 column show-for-medium">
+      <div id="map"></div>
+      <div id="map-title">Select an indicator to compare by Planning District</div>
+    </div>
 
     <div id="district-info" class="medium-16 small-24 column end">
-    {% assign categories = site.data[site.year].planning_district | group_by: 'Category' %}
-    {% assign labels = site.data[site.year].planning_district_labels %}
-        <div id="selectors" class="medium-16 columns pln prm pvm">
-          <!-- Dropdown to select district-->
-          <div class="district-selector medium-12 column prm pbs">
-            <label for="planning-district">Choose a district</label>
-            <select id="planning-district">
-              <optgroup label="Planning Districts">
-                {% for label in labels %}
-                <option>{{ label }}</option>
-                {% endfor %}
-              </optgroup>
-            </select>
-          </div>
-          <!-- Dropdown to select category-->
-          <div class="category-selector medium-12 column prm pbs">
-            <label for="categories">Choose a category</label>
-            <select id="categories">
-              <optgroup label="Categories">
-                {% for category in categories %}
-                <option value="{{ category.name | slugify }}">{{ category.name }}</option>
-                {% endfor %}
-              </optgroup>
-            </select>
-          </div>
-        </div>
       <div id="indicators">
         <div id="top"></div>
-      <div class="indicators-container">
-    <!-- Loop over indicators, group by category and display cards-->
-      <!-- Category Heading -->
-        {% for category in categories %}
-        <div id="{{ category.name | slugify }}" class="offset">
-          <div class="row">
-            <h1 class="contrast columns">{{ category.name }}
-              <a href="#{{ category.name | slugify }}" class="header-link"><i class="fa fa-link"></i></a></h1>
-            </div>
-            <div class="row equal-height">
-              {% for row in category.items %}
-              <div class="medium-8 small-12 column{% if row.Indicator | last %} end{% endif %}{% if row.Central == 'N/A' %} hidden{% endif %}" id="card-{{ row.Indicator | slugify }}">
-                <div class="card equal">
-                  <div class="content-block">
-                    <h1 class="indicator-value" id="value-{{ row.Indicator | slugify }}">
-	                      {% if row.dataType == 'Percentage' and row.Central != 'N/A' %}
-	                        {{ row.Central | times: 100 }}%
-                        {% elsif row.dataType == 'Count' and row.Central != 'N/A' %}
-                          {{ row.Central | round: 1 }}
-	                      {% elsif row.Central == 'N/A' %}
-                          N/A
-						            {% else %}
-	                        {{ row.Central }}
-	                      {% endif %}
-                    </h1>
-                    <h3 class="h2">{{ row.Indicator | replace: "<", "&lt;" }}</h3><br>
-                    {% if row.description %}<span class="source"><strong>Description: </strong></span>
-                    <span class="description">{{ row.description | replace: "<", "&lt;" | markdownify }}</span>{% endif %}
-                    {% if row.chartComment or row.Note %}<span class="source"><strong>Note: </strong></span><br> {% endif %}
-                    {% if row.chartComment %}  <p class="source">{{ row.chartComment }}</p>{% endif %}
-                    {% if row.Note %} <p class="source">{{ row.Note }}</p>{% endif %}
 
-                    {% if row.dataSource %}<br><span class="source"><strong>Source: </strong><br>
-                      {{ row.dataSource | markdownify |  remove: '<p>' | remove: '</p>' }} {% if row.dataSourceYear %} | {{ row.dataSourceYear }}{% endif %}</span>
-                    {% endif %}
-                    <!-- <p><i class="fa fa-twitter fa-2x"></i></p> -->
-                  </div>
+        <div class="indicators-container">
+          {% for category in categories %}
+          <div id="{{ category.name | slugify }}" class="offset">
+            <div class="row columns">
+              <h1 class="contrast">
+                {{ category.name }}
+                <a href="#{{ category.name | slugify }}" class="header-link">
+                  <i class="fa fa-link"></i>
+                </a>
+              </h1>
+              <div class="row equal-height">
+              {% for item in category.items %}
+                {% assign item_id = item.Indicator | slugify %}
+                <div class="indicator-card medium-8 small-12 column end" id="card-{{ item_id }}">
+                  <a href="#{{ item_id }}">
+                    <div class="card equal">
+                      <div class="content-block">
+                        <h1>{{ item.Indicator }}</h1>
+                        {% if item.description %}
+                          <h4>Description:</h4>
+                          <div class="description">
+                            {{ item.description | markdownify }}
+                          </div>
+                        {% endif %}
+                        {% if item.chartComment or item.Note %}
+                          <h4>Note:</h4>
+                          <p class="note">
+                            {{ item.chartComment }}
+                            {{ item.Note }}
+                          </p>
+                        {% endif %}
+                        {% if item.dataSource %}
+                          <h4>Source:</h4>
+                          <p class="source">
+                            {{ item.dataSource }}
+                            | {{ item.dataSourceYear }}
+                          </p>
+                        {% endif %}
+                      </div>
+                    </div>
+                  </a>
                 </div>
+              {% endfor %}
               </div>
-            {% endfor %}
-            <!-- End of each chart section with BACK TO TOP link -->
-            <div class="row">
-              <div class="medium-24 column top">
-                <a class="float-right" href="#top"> <i class="fa fa-arrow-up"></i> <span class="to-top">back to top</span></a>
+              <div class="row">
+                <div class="medium-24 column top">
+                  <a class="float-right" href="#top"> <i class="fa fa-arrow-up"></i> <span class="to-top">back to top</span></a>
+                </div>
               </div>
             </div>
           </div>
+          {% endfor %}
         </div>
-      {% endfor %}
       </div>
     </div>
-  </div>
   </div>
 </div>
 
 <script>
-  var container = document.querySelector('#map')
+  // Pass data from jekyll/liquid to javascript
   var districtsGeojson = {{ site.data.planning_district_boundaries | jsonify }}
-  var data = {{ site.data[site.year].planning_district | jsonify }}
+  var indicators = {{ site.data[site.year].planning_district | jsonify }}
   var labels = {{ site.data[site.year].planning_district_labels | jsonify }}
-  document.getElementById('categories').addEventListener('change', function (evt) {
-    var value = this.value;
-    window.location.hash = value;
-  })
 </script>
 <script src="{{ site.baseurl }}/scripts/planning-districts.js"></script>
