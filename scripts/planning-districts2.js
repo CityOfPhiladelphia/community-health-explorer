@@ -11,16 +11,19 @@
   var map = L.map(container, mapOpts)
     .setView(DEFAULT_CENTER, DEFAULT_ZOOM)
     .addLayer(L.esri.tiledMapLayer({ url: TILES_BASEMAP }))
-
   var layerGroup = L.layerGroup().addTo(map)
 
   // Key indicators by slug
+  // Note this relies on jekyll/liquid and the slugify function below
+  // producing matching strings.
   var keyedIndicators = {}
   indicators.forEach(function (indicator) {
     var slug = slugify(indicator.Indicator)
     keyedIndicators[slug] = indicator
   })
 
+  // Bind onhashchange event to update function and execute it once
+  // immediately, in case there's a hash set on page load
   window.onhashchange = updateMapByHash
   updateMapByHash()
 
@@ -31,6 +34,7 @@
     if (indicator) {
       layerGroup.clearLayers()
       createChoroplethLayer(districtsGeojson, indicator).addTo(layerGroup)
+      setSelectedCard(hash)
     }
   }
 
@@ -62,6 +66,18 @@
         var value = getDistrictValue(indicator, district)
         var tooltipContents = district + '<br>' + value
         layer.bindTooltip(tooltipContents)
+      }
+    })
+  }
+
+  function setSelectedCard (slug) {
+    var cardsNodeList = document.querySelectorAll('.indicator-card')
+    var cards = [].slice.call(cardsNodeList) // convert to Array
+    cards.forEach(function (card) {
+      if (card.id === 'card-' + slug) {
+        card.classList.add('is-selected')
+      } else {
+        card.classList.remove('is-selected')
       }
     })
   }

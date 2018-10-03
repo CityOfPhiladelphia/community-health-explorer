@@ -68,7 +68,7 @@ aside#secondary a:link, aside#secondary a:visited {
 .indicator-wrapper {
   margin-bottom: 20px;
 }
-.source, .updated, .comment {
+.source, .updated, .note, .comment {
   font-size: .7rem;
 }
 .main {
@@ -78,6 +78,20 @@ aside#secondary a:link, aside#secondary a:visited {
 .description {
   word-wrap: break-word;
   /* margin-bottom: -12px; */
+}
+.indicators-container p {
+  font-weight: normal;
+}
+.indicator-card.is-selected .card {
+  border: 5px solid #2176d2;
+}
+.card h1 {
+  font-size: 1.33rem;
+  margin-bottom: 10px;
+}
+.card h4 {
+  font-size: .7rem;
+  font-weight: bold;
 }
 .top {
   border-bottom: 1px dotted #a1a1a1;
