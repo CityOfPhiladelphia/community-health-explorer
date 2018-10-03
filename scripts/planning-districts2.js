@@ -34,6 +34,7 @@
     if (indicator) {
       layerGroup.clearLayers()
       createChoroplethLayer(districtsGeojson, indicator).addTo(layerGroup)
+      updateMapTitle(indicator.Indicator)
       setSelectedCard(hash)
     }
   }
@@ -79,6 +80,10 @@
         layer.bindTooltip(tooltipContents)
       }
     })
+  }
+
+  function updateMapTitle (title) {
+    document.querySelector('#map-title').innerText = title
   }
 
   function setSelectedCard (slug) {

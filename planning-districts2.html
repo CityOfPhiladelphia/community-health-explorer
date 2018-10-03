@@ -7,8 +7,11 @@ permalink: /planning-districts2/
 {% assign categories = site.data[site.year].planning_district | group_by: 'Category' %}
 
 <div class="row">
-  <div id="map-wrapper">
-    <div id="map" class="medium-8 column show-for-medium"></div>
+  <div id="page-wrapper">
+    <div id="map-container" class="medium-8 column show-for-medium">
+      <div id="map"></div>
+      <div id="map-title">Select an indicator to compare by Planning District</div>
+    </div>
 
     <div id="district-info" class="medium-16 small-24 column end">
       <div id="indicators">

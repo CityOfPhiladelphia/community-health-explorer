@@ -5,16 +5,29 @@ body {
 #site-wide-alert{
   margin-bottom:0;
 }
-#map {
+#map-container {
+  position: relative;
   height: 100%;
-  left: -20px;
   margin: 0px;
   padding: 0px;
 }
-#map-wrapper {
+#map {
+  width: 100%;
+  height: 100%;
+  left: -20px;
+}
+#page-wrapper {
   height: 100%;
   width: 100%;
   position: fixed;
+}
+#map-title {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 2rem;
+  padding: 10px 20px 0 0;
+  z-index: 999999;
 }
 #district-info {
   overflow-y: scroll;
