@@ -46,6 +46,16 @@
     }
   }
 
+  function formatValue (indicator, value) {
+    if (indicator.dataType === 'Percentage') {
+      return (Math.round(value * 100 * 100) / 100) + '%'
+    } else if (indicator.dataType === 'Count') {
+      return Math.round(value).toLocaleString()
+    } else {
+      return value
+    }
+  }
+
   function createChoroplethLayer (geojson, indicator) {
     return L.choropleth(geojson, {
       scale: ['#96c9ff', '#0f4d90'],
@@ -64,7 +74,8 @@
       onEachFeature: function (feature, layer) {
         var district = feature.properties.DIST_NAME
         var value = getDistrictValue(indicator, district)
-        var tooltipContents = district + '<br>' + value
+        var formattedValue = formatValue(indicator, value)
+        var tooltipContents = district + '<br>' + formattedValue
         layer.bindTooltip(tooltipContents)
       }
     })
